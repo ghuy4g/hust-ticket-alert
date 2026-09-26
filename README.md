@@ -1,39 +1,40 @@
 # HUST Ticket Monitor
 
-Bot cá nhân dùng Playwright để theo dõi trang [Đặt vé CTSV HUST](https://ctsv.hust.edu.vn/dat-ve), gửi thông báo qua Telegram và, nếu được bật, tự đăng ký sự kiện còn chỗ bằng đúng luồng thao tác trên giao diện website.
+A personal Playwright-based bot that monitors the [HUST Student Affairs ticket page](https://ctsv.hust.edu.vn/dat-ve), sends Telegram notifications, and can optionally register for available events through the website's normal user interface.
 
-> Đây là dự án cá nhân, không phải sản phẩm chính thức của Đại học Bách khoa Hà Nội. Hãy sử dụng có trách nhiệm, tuân thủ quy định của HUST và không chạy nhiều bản bot cùng lúc.
+> [!WARNING]
+> This is an unofficial personal project and is not affiliated with Hanoi University of Science and Technology. Use it responsibly, follow HUST's rules and the website's terms, avoid aggressive polling, and never run multiple instances with the same browser profile.
 
-## Tính năng
+## Features
 
-- Mở Chromium bằng một hồ sơ riêng và giữ phiên đăng nhập giữa các lần chạy.
-- Làm mới danh sách bằng nút **Làm mới** của website.
-- Gửi Telegram khi có sự kiện mới hoặc một sự kiện có chỗ trở lại.
-- Có thể tự đăng ký sự kiện đủ điều kiện:
-  1. Bấm **Đăng ký**.
-  2. Bấm **Xác nhận đăng ký** trong hộp thoại màu đỏ.
-  3. Làm mới và kiểm tra `Vé của tôi` trước khi báo thành công.
-- Không hủy hoặc thay thế vé đang có.
-- Tự thử đăng nhập lại khi phiên Office 365 hết hạn bằng thông tin mà Chromium đã lưu và tự điền.
-- Giữ hàng đợi Telegram trên ổ đĩa khi mạng tạm thời lỗi.
-- Tự tăng thời gian chờ khi website lỗi hoặc giới hạn truy cập.
-- Khóa tiến trình để tránh hai bản bot dùng chung một hồ sơ trình duyệt.
+- Opens Chromium with a dedicated persistent profile.
+- Refreshes the event list through the website's **Refresh** button.
+- Sends Telegram alerts for newly listed events and seats that become available again.
+- Can optionally register for an eligible event by:
+  1. Clicking **Register**.
+  2. Clicking the red confirmation button in the dialog.
+  3. Refreshing the page and verifying the ticket under **My tickets**.
+- Does not cancel or replace an existing ticket.
+- Attempts to recover an expired Office 365 session using credentials already stored by Chromium Autofill.
+- Stores pending Telegram messages locally during temporary network failures.
+- Uses increasing retry delays when the website fails or rate-limits requests.
+- Uses a process lock to prevent two bot instances from sharing one browser profile.
 
-## Yêu cầu
+## Requirements
 
-- Windows 10 hoặc Windows 11.
-- Python 3.12 trở lên.
-- Tài khoản HUST có quyền truy cập trang đặt vé.
-- Một Telegram bot được tạo bằng [@BotFather](https://t.me/BotFather).
-- Máy phải đang bật, có mạng và không ở chế độ Sleep trong lúc bot hoạt động.
+- Windows 10 or Windows 11.
+- Python 3.12 or newer.
+- A HUST account with access to the ticket page.
+- A Telegram bot created through [@BotFather](https://t.me/BotFather).
+- A computer that remains powered on, connected to the internet, and awake while the bot is running.
 
-## Cài đặt trên Windows
+## Installation on Windows
 
-Mở **Command Prompt** rồi chạy lần lượt:
+Open **Command Prompt** and run:
 
 ```bat
 cd /d "%USERPROFILE%"
-git clone https://github.com/YOUR_GITHUB_USERNAME/hust-ticket-monitor.git hust-ticket-bot
+git clone https://github.com/ghuy4g/hust-ticket-alert.git hust-ticket-bot
 cd /d "%USERPROFILE%\hust-ticket-bot"
 
 py -3.12 -m venv .venv
@@ -42,68 +43,68 @@ py -3.12 -m venv .venv
 .venv\Scripts\python.exe -m playwright install chromium
 ```
 
-Nếu lệnh `py -3.12` không tồn tại, hãy cài Python 3.12 từ trang chính thức, chọn **Add Python to PATH**, rồi mở lại Command Prompt.
+If `py -3.12` is unavailable, install Python 3.12 from the official Python website, enable **Add Python to PATH**, and reopen Command Prompt.
 
-## Tạo và kết nối Telegram bot
+## Telegram setup
 
-### 1. Tạo bot
+### 1. Create a Telegram bot
 
-1. Mở Telegram và tìm `@BotFather`.
-2. Gửi lệnh `/newbot`.
-3. Nhập tên hiển thị cho bot.
-4. Nhập username kết thúc bằng `bot`.
-5. BotFather sẽ gửi một token. Không chia sẻ token này và không đưa nó lên GitHub.
+1. Open Telegram and find `@BotFather`.
+2. Send `/newbot`.
+3. Choose a display name.
+4. Choose a username ending in `bot`.
+5. BotFather will provide a token. Never share or commit this token.
 
-### 2. Kết nối bot với cuộc trò chuyện riêng
+### 2. Connect the bot to your private chat
 
-Trong thư mục dự án, chạy:
+From the project directory, run:
 
 ```bat
 .venv\Scripts\python.exe hust_bot.py --setup
 ```
 
-Sau đó:
+Then:
 
-1. Dán token BotFather vào Command Prompt rồi nhấn Enter. Token sẽ không hiện trên màn hình.
-2. Mở đúng bot Telegram vừa tạo và bấm **Start**.
-3. Gửi chính xác mã dạng `HUST-XXXXXXXX` mà chương trình hiển thị.
-4. Quay lại Command Prompt và nhấn Enter.
-5. Khi Telegram báo kết nối thành công, cấu hình đã hoàn tất.
+1. Paste the BotFather token into Command Prompt and press Enter. The token is not displayed.
+2. Open the Telegram bot and press **Start**.
+3. Send the exact `HUST-XXXXXXXX` pairing code shown by the program.
+4. Return to Command Prompt and press Enter.
+5. Wait for the Telegram confirmation message.
 
-Chương trình tạo `config.json` trên máy. File này chứa token Telegram và chat ID nên đã được `.gitignore` chặn khỏi GitHub.
+The program creates a local `config.json`. It contains the Telegram token and chat ID and must never be committed.
 
-## Thiết lập đăng nhập HUST lần đầu
+## First HUST login
 
-Chạy:
+Run:
 
 ```bat
 .venv\Scripts\python.exe hust_bot.py
 ```
 
-Một cửa sổ Chromium riêng sẽ mở ra:
+A dedicated Chromium window will open:
 
-1. Đăng nhập HUST/Office 365 trong cửa sổ đó.
-2. Nếu Chromium hỏi lưu tài khoản hoặc mật khẩu, chọn lưu. Dữ liệu này nằm trong thư mục cục bộ `browser-profile` và không được mã nguồn đọc trực tiếp.
-3. Đi tới `https://ctsv.hust.edu.vn/dat-ve`.
-4. Chờ đến khi nhìn thấy danh sách sự kiện và nút **Làm mới**.
-5. Quay lại Command Prompt và nhấn Enter để bot bắt đầu theo dõi.
+1. Sign in to HUST/Office 365 in that window.
+2. If Chromium offers to save the account or password, allow it. The data remains inside the local `browser-profile` directory and is not read directly by the source code.
+3. Open `https://ctsv.hust.edu.vn/dat-ve`.
+4. Wait until the event list and the **Refresh** button appear.
+5. Return to Command Prompt and press Enter to start monitoring.
 
-Không đóng cửa sổ Chromium do bot mở trong lúc bot đang chạy.
+Do not close the Chromium window while the bot is running.
 
-## Chạy bot những lần sau
+## Running the bot later
 
 ```bat
 cd /d "%USERPROFILE%\hust-ticket-bot"
 .venv\Scripts\python.exe hust_bot.py
 ```
 
-Khi danh sách sự kiện đã hiện, quay lại Command Prompt và nhấn Enter.
+When the event list is visible, return to Command Prompt and press Enter.
 
-Để dừng bot, chọn cửa sổ Command Prompt và nhấn `Ctrl + C`. Telegram sẽ báo bot đã dừng.
+To stop the bot, select Command Prompt and press `Ctrl + C`.
 
-## Cấu hình
+## Configuration
 
-Sau khi chạy `--setup`, `config.json` có cấu trúc:
+After `--setup`, `config.json` has this structure:
 
 ```json
 {
@@ -114,115 +115,115 @@ Sau khi chạy `--setup`, `config.json` có cấu trúc:
 }
 ```
 
-- `interval_seconds`: chu kỳ kiểm tra. Chương trình không cho nhỏ hơn `0.5` giây. Kiểm tra quá nhanh có thể khiến website giới hạn truy cập; giá trị `2` đến `5` giây nhẹ hơn cho máy chủ.
-- `auto_register: true`: tự bấm đăng ký và xác nhận.
-- `auto_register: false`: chỉ theo dõi và gửi thông báo Telegram, không đăng ký.
+- `interval_seconds` controls the polling interval. The program does not allow values below `0.5` seconds. Values between `2` and `5` seconds place less load on the server.
+- `auto_register: true` enables registration and confirmation.
+- `auto_register: false` only monitors availability and sends Telegram alerts.
 
-Hãy dừng bot trước khi sửa `config.json`, lưu file, rồi chạy lại.
+Stop the bot before editing `config.json`, save the file, and restart it.
 
-## Tự khôi phục phiên đăng nhập
+## Session recovery
 
-Khi website hiện **Phiên Office 365 đã hết hạn** hoặc **Cần đăng nhập Office 365**, bot sẽ thử:
+When the website reports an expired Office 365 session, the bot attempts to:
 
-1. Bấm **Đăng nhập lại** hoặc **Đăng nhập Office 365**.
-2. Chờ Chromium tự điền tài khoản và bấm **Next**.
-3. Chờ Chromium tự điền mật khẩu và bấm **Sign in**.
-4. Quay lại `/dat-ve` và tiếp tục theo dõi.
+1. Click **Sign in again** or **Sign in with Office 365**.
+2. Wait for Chromium to autofill the account and click **Next**.
+3. Wait for Chromium to autofill the password and click **Sign in**.
+4. Return to `/dat-ve` and resume monitoring.
 
-Bot không lưu mật khẩu trong mã nguồn, `config.json`, log hoặc Telegram. Nếu Chromium không tự điền, hoặc trang yêu cầu CAPTCHA/MFA, bạn phải xử lý thủ công trong cửa sổ bot.
+The bot does not store a password in its source code, configuration, logs, or Telegram messages. CAPTCHA, MFA, or failed Autofill must be handled manually in the bot's browser window.
 
-## Cách bot quyết định đăng ký
+## Registration rules
 
-Một sự kiện chỉ được coi là có thể đăng ký khi:
+An event is considered eligible only when:
 
-- Trạng thái API là `OPEN`.
-- Tài khoản chưa có vé của sự kiện đó.
-- Sự kiện không bị khóa bởi điều kiện xung đột của website.
-- Số chỗ còn lại lớn hơn `0`, hoặc website đánh dấu sức chứa không giới hạn.
+- Its API status is `OPEN`.
+- The account does not already have its ticket.
+- The website does not block it because of an event conflict.
+- At least one seat remains, or the event has unlimited capacity.
 
-Nếu có nhiều sự kiện phù hợp, bot ưu tiên sự kiện bắt đầu sớm hơn. Mỗi lần làm mới bot chỉ thử một sự kiện rồi tải lại trạng thái trước khi thử sự kiện tiếp theo.
+If multiple events are eligible, the bot prioritizes the earliest event. It attempts only one registration per refresh and reloads the state before trying another event.
 
-## Thông báo Telegram
+## Telegram messages
 
-Bot có thể gửi các thông báo chính:
+Important messages include:
 
-- `BOT DA BAT DAU`: bot đã bắt đầu theo dõi.
-- `SU KIEN MOI`: website xuất hiện sự kiện mới.
-- `CO THE DANG KY / CO CHO TRO LAI`: một sự kiện đã mở hoặc vừa có chỗ lại.
-- `DA XAC MINH CO VE`: website xác nhận tài khoản đã có vé.
-- `CAN KIEM TRA THU CONG`: chưa xác minh chắc chắn kết quả đăng ký.
-- `PHIEN HUST DA HET HAN`: bot đang thử đăng nhập lại.
-- `BOT GAP LOI`: lỗi mạng, website, giao diện hoặc đăng nhập.
-- `BOT VAN HOAT DONG`: heartbeat mỗi giờ.
-- `BOT DA DUNG`: tiến trình đã dừng.
+- `BOT DA BAT DAU`: monitoring started.
+- `SU KIEN MOI`: a new event appeared.
+- `CO THE DANG KY / CO CHO TRO LAI`: registration is open or a seat became available again.
+- `DA XAC MINH CO VE`: the website confirms that the account owns the ticket.
+- `CAN KIEM TRA THU CONG`: the result could not be verified with confidence.
+- `PHIEN HUST DA HET HAN`: the bot detected an expired session and is attempting recovery.
+- `BOT GAP LOI`: a network, website, interface, or login error occurred.
+- `BOT VAN HOAT DONG`: hourly heartbeat.
+- `BOT DA DUNG`: the process stopped.
 
-## File được tạo khi chạy
+## Local files
 
-| File/thư mục | Nội dung | Được đưa lên GitHub? |
+| File or directory | Purpose | Commit to GitHub? |
 |---|---|---|
-| `hust_bot.py` | Mã nguồn chính | Có |
-| `README.md` | Tài liệu hướng dẫn | Có |
-| `requirements.txt` | Thư viện Python | Có |
-| `.gitignore` | Danh sách file riêng tư cần chặn | Có |
-| `config.json` | Token Telegram và chat ID | **Không** |
-| `browser-profile/` | Cookie, phiên đăng nhập và dữ liệu trình duyệt | **Không** |
-| `state.json` | Trạng thái sự kiện và lần đăng ký đang chờ | **Không** |
-| `telegram-outbox.json` | Hàng đợi thông báo | **Không** |
-| `bot.log*` | Nhật ký hoạt động | **Không** |
-| `bot.lock` | Khóa tiến trình | **Không** |
-| `.venv/` | Môi trường Python cục bộ | **Không** |
+| `hust_bot.py` | Main source code | Yes |
+| `README.md` | Documentation | Yes |
+| `requirements.txt` | Python dependencies | Yes |
+| `.gitignore` | Excluded private/local files | Yes |
+| `config.json` | Telegram token and chat ID | **No** |
+| `browser-profile/` | Cookies, login session, and browser data | **No** |
+| `state.json` | Event and pending-registration state | **No** |
+| `telegram-outbox.json` | Pending notifications | **No** |
+| `bot.log*` | Runtime logs | **No** |
+| `bot.lock` | Process lock | **No** |
+| `.venv/` | Local Python environment | **No** |
 
-## Xử lý lỗi thường gặp
+## Troubleshooting
 
-### `Bot da chay o cua so khac`
+### Another bot instance is already running
 
-Chỉ được chạy một bản bot. Dừng cửa sổ cũ bằng `Ctrl + C`. Nếu cửa sổ đã đóng bất thường, bảo đảm không còn tiến trình Python/Chromium của bot rồi chạy lại.
+Only one instance may run at a time. Stop the old Command Prompt process with `Ctrl + C`. If it closed unexpectedly, make sure no old Python or bot Chromium process remains before restarting.
 
 ### `TargetClosedError`
 
-Cửa sổ hoặc hồ sơ Chromium đã bị đóng trong khi bot hoạt động. Đóng tiến trình cũ và chạy lại bot; không chạy hai bản cùng lúc.
+The bot's Chromium window or browser profile was closed. Stop any old process and restart the bot. Do not run two instances simultaneously.
 
-### Bot không tự đăng nhập lại
+### Automatic login recovery fails
 
-- Kiểm tra tài khoản và mật khẩu đã được lưu trong đúng cửa sổ Chromium của bot.
-- Tự điền phải hoạt động ở cả trang tài khoản và trang mật khẩu.
-- Nếu có CAPTCHA hoặc MFA, đăng nhập thủ công.
-- Sau khi vào lại `/dat-ve`, bot sẽ tiếp tục ở chu kỳ sau.
+- Confirm that the account and password were saved in the bot's dedicated Chromium profile.
+- Confirm that Autofill works on both the account and password pages.
+- Complete CAPTCHA or MFA manually.
+- Once `/dat-ve` is open again, the bot resumes on a later cycle.
 
-### Website trả lỗi `429`
+### HTTP `429`
 
-Website đang giới hạn tần suất truy cập. Bot tự chờ ít nhất 60 giây theo phản hồi của máy chủ. Không mở thêm bản bot; nên tăng `interval_seconds`.
+The website is rate-limiting requests. The bot waits according to the response and applies a minimum delay. Do not open another instance, and increase `interval_seconds`.
 
-### Telegram không nhận tin
+### Telegram receives no messages
 
-- Kiểm tra máy còn mạng.
-- Mở bot Telegram và bấm **Start**.
-- Kiểm tra token chưa bị BotFather thu hồi.
-- Chạy lại `hust_bot.py --setup` nếu cần kết nối lại.
+- Check the internet connection.
+- Open the Telegram bot and press **Start**.
+- Confirm that BotFather has not revoked the token.
+- Run `hust_bot.py --setup` again if the private chat must be paired again.
 
-### Giao diện HUST thay đổi
+### The HUST interface changes
 
-Bot phụ thuộc vào nút và hộp thoại hiện tại của website. Nếu tên nút hoặc cấu trúc API thay đổi, bot sẽ dừng thao tác không chắc chắn và gửi/cung cấp lỗi để tránh đăng ký nhầm liên tiếp.
+The automation depends on the current website controls and API structure. If button labels or the page structure change, the bot may stop uncertain actions and report an error to avoid repeated incorrect registration attempts.
 
-## Bảo mật
+## Security
 
-- Không commit `config.json` hoặc `browser-profile/`.
-- Không đăng ảnh chụp chứa token, mã vé, email, MSSV hoặc cookie.
-- Không gửi token Telegram cho người khác.
-- Nếu token từng xuất hiện công khai, dùng `/revoke` trong BotFather ngay lập tức, tạo token mới và chạy lại `--setup`.
-- Trước mỗi lần push, chạy `git status` và `git ls-files` để kiểm tra danh sách file.
+- Never commit `config.json` or `browser-profile/`.
+- Never publish screenshots containing tokens, ticket codes, email addresses, student IDs, or cookies.
+- Never share the Telegram token.
+- If a token is exposed, immediately use `/revoke` in BotFather, generate a replacement, and rerun `--setup`.
+- Before every push, inspect tracked files with `git status` and `git ls-files`.
 
-## Giới hạn
+## Limitations
 
-- Bot phải chạy trên máy đang bật và có mạng.
-- Tự đăng nhập phụ thuộc vào autofill của hồ sơ Chromium cục bộ.
-- CAPTCHA, MFA, website ngừng hoạt động hoặc giao diện thay đổi có thể cần xử lý thủ công.
-- Vé vẫn phụ thuộc vào tốc độ mạng, phản hồi máy chủ và số người đăng ký cùng lúc; bot không bảo đảm lấy được vé.
-- Tần suất kiểm tra thấp không đồng nghĩa với quyền ưu tiên, và tần suất quá cao có thể bị giới hạn.
+- The computer must remain powered on and connected to the internet.
+- Automatic login recovery depends on Chromium Autofill in the local profile.
+- CAPTCHA, MFA, outages, and website changes may require manual intervention.
+- Ticket acquisition still depends on network latency, server response, and competing users; success is not guaranteed.
+- Faster polling does not grant priority and may trigger rate limits.
 
-## Cập nhật mã nguồn
+## Updating
 
-Nếu thư mục không có thay đổi riêng:
+If the local directory has no uncommitted source changes:
 
 ```bat
 cd /d "%USERPROFILE%\hust-ticket-bot"
@@ -231,8 +232,8 @@ git pull
 .venv\Scripts\python.exe -m playwright install chromium
 ```
 
-Các file cấu hình, phiên đăng nhập và trạng thái cục bộ vẫn được giữ nguyên vì không nằm trong Git.
+Local configuration, browser session, and state files remain untouched because Git does not track them.
 
-## Giấy phép
+## License
 
-Dự án hiện chưa kèm giấy phép mã nguồn mở. Mặc định tác giả giữ toàn bộ quyền đối với mã nguồn. Nếu muốn cho phép người khác sử dụng, sửa đổi và phân phối, hãy bổ sung một giấy phép phù hợp như MIT.
+No open-source license is currently included. The author retains all rights by default. Add a license such as MIT if you want to allow others to use, modify, and redistribute the code.
